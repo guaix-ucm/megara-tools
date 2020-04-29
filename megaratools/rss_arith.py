@@ -1,17 +1,11 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[72]:
-
-
 #
-# Copyright 2017 Universidad Complutense de Madrid
+# Copyright 2020 Universidad Complutense de Madrid
 #
-# This file is part of Megara DRP
+# This file is part of Megara Tools
 #
 # SPDX-License-Identifier: GPL-3.0+
 # License-Filename: LICENSE.txt
-# if __name__ == '__main__':
+#
 
 def main(args=None):
 #    import math
