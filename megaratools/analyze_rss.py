@@ -223,7 +223,8 @@ def main(args=None):
        lmlines = [lambda0 + (pm1 - crpix) * cdelt, lambda0 + (pm2 - crpix) * cdelt]
        lllines = [float(args.lcut1)*(1.+z),float(args.lcut2)*(1.+z)]
        lclines = [float(args.ccut1)*(1.+z),float(args.ccut2)*(1.+z)]
-       leclines = [float(args.eccut1) * (1. + z), float(args.eccut2) * (1. + z)]
+       if (args.eccut1 is not None and args.eccut2 is not None):
+        leclines = [float(args.eccut1) * (1. + z), float(args.eccut2) * (1. + z)]
        plines = [float(args.pcut1),float(args.pcut2)]
        cwline = [float(args.ctwl)*(1.+z)]
        axvlines(lmlines, color='cyan', label = 'All-fiber range', linestyle = '-')
@@ -231,7 +232,8 @@ def main(args=None):
        axvlines(cwline, color='black', label = 'Central wavelength', linestyle = '-')
        axvlines(lllines, color='gray', label = 'Line-fitting range', linestyle = '-')
        axvlines(lclines, color='gray', label = 'Continuum range', linestyle = '--')
-       axvlines(leclines, color='gray', linestyle='--')
+       if (args.eccut1 is not None and args.eccut2 is not None):
+        axvlines(leclines, color='gray', linestyle='--')
        axvlines(plines, color='green', label = 'Plot range', linestyle = '-.')
        plt.legend()
 
@@ -336,8 +338,7 @@ def main(args=None):
               err_lin = lambda p, x, y: linfunc(p, x) - y
               fitout_lin = minimize(err_lin, p_lin, args=(wcont, fcont))
               fitted_p_lin = fitout_lin.params
-              pars_lin = [fitout_lin.params['slope'].value, fitout_lin.params['yord'].value,
-                          fitout_lin.chisqr]
+              pars_lin = [fitout_lin.params['slope'].value, fitout_lin.params['yord'].value,fitout_lin.chisqr]
               if (args.verbose):
                   print("Output(slope,yord): %10.3E %10.3E" % (
               fitout_lin.params['slope'].value, fitout_lin.params['yord'].value))
@@ -427,7 +428,7 @@ def main(args=None):
                   p_gh=Parameters()
                   p_gh.add('amp',value=amp, vary=True);
                   p_gh.add('center',value=center, vary=True);
-                  p_gh.add('sigma',value=sigma, vary=True, min=sigma);
+                  p_gh.add('sigma',value=1.2*sigma, vary=True, min=sigma);
                   if (args.verbose): 
                     print ("FITTING METHOD: SINGLE GAUSSIAN")
                     print ("Input(i0,l0,sigma):  %10.3E %5.2f %5.2f"%(amp, center, sigma))
@@ -442,7 +443,7 @@ def main(args=None):
                   p_gh.add('sigma2',value=sigma2, vary=True, min=1.5*sigma1);
                   if (args.verbose): 
                     print ("FITTING METHOD: DOUBLE GAUSSIAN")
-                    print ("Input(i1,l1,sig1,i2,l2,sig2):  %10.3E %5.2f %5.2f %10.3E %5.2f %5.2f"%(amp1, center1, sigma1, amp2, center2, sigma2))
+                    print ("Input(i1,l1,sig1,i2,l2,sig2):  %10.3E %5.2f %5.2f %10.3E %5.2f %5.2f"%(amp1, center1, sigma1, args.scale_amp2*amp2, center2, sigma2))
                   gausserr_gh = lambda p,x,y: gauss2func(p,x)-y
 
               fitout_gh=minimize(gausserr_gh,p_gh,args=(wline,fpline))
@@ -453,11 +454,15 @@ def main(args=None):
                   fit_gh=gaussfunc_gh(fitted_p_gh,wline)
                   if (args.verbose): 
                     print ("Output(i0,l0,sigma,skew,kurt): %10.3E %5.2f %5.2f %10.3E %10.3E"%(fitout_gh.params['amp'].value, fitout_gh.params['center'].value, fitout_gh.params['sigma'].value, fitout_gh.params['skew'].value, fitout_gh.params['kurt'].value))
+                    print('WARNING::::: out.covar == None :::::: Fit Sucess = '+ str(fitout_gh.success) + ' :: Uncertainties estimated = ' + str(fitout_gh.errorbars))
+
               if args.method is 1:
                   pars_gh=[fitout_gh.params['amp'].value,fitout_gh.params['center'].value,fitout_gh.params['sigma'].value,fitout_gh.chisqr]
                   fit_gh=gaussfunc(fitted_p_gh,wline)
                   if (args.verbose): 
                     print ("Output(i0,l0,sigma): %10.3E %5.2f %5.2f"%(fitout_gh.params['amp'].value, fitout_gh.params['center'].value, fitout_gh.params['sigma'].value))
+                    print('WARNING::::: out.covar == None :::::: Fit Sucess = '+ str(fitout_gh.success) + ' :: Uncertainties estimated = ' + str(fitout_gh.errorbars))
+
               if args.method is 2:
                   pars_gh=[fitout_gh.params['amp1'].value,fitout_gh.params['center1'].value,fitout_gh.params['sigma1'].value,fitout_gh.params['amp2'].value,fitout_gh.params['center2'].value,fitout_gh.params['sigma2'].value,fitout_gh.chisqr] 
                   fit_gh=gauss2func(fitted_p_gh,wline)
@@ -511,7 +516,8 @@ def main(args=None):
                   lmlines = [lambda0 + (pm1 - crpix) * cdelt, lambda0 + (pm2 - crpix) * cdelt]
                   lllines = [float(args.lcut1)*(1.+z),float(args.lcut2)*(1.+z)]
                   lclines = [float(args.ccut1)*(1.+z),float(args.ccut2)*(1.+z)]
-                  leclines = [float(args.eccut1) * (1. + z), float(args.eccut2) * (1. + z)]
+                  if (args.eccut1 is not None and args.eccut2 is not None):
+                    leclines = [float(args.eccut1) * (1. + z), float(args.eccut2) * (1. + z)]
                   cwline = [float(args.ctwl)*(1.+z)]
 
                   axvlines(lmlines, color='cyan', label = 'All-fiber range', linestyle = '-')
@@ -520,7 +526,8 @@ def main(args=None):
                      axvlines(cwline, color='black', label = 'Central wavelength', linestyle = '-')
                   axvlines(lllines, color='gray', label = 'Line-fitting range', linestyle = '-')
                   axvlines(lclines, color='gray', label = 'Continuum range', linestyle = '--')
-                  axvlines(leclines, color='gray', linestyle='--')
+                  if (args.eccut1 is not None and args.eccut2 is not None):
+                    axvlines(leclines, color='gray', linestyle='--')
 
                   if args.method is 0:       
                       H0.append(fitout_gh.params['amp'].value)

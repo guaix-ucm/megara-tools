@@ -276,7 +276,7 @@ def main(args=None):
               p_gh=Parameters()
               p_gh.add('amp',value=amp, vary=True)
               p_gh.add('center',value=center, vary=True)
-              p_gh.add('sigma',value=sigma, vary=True, min=0.8*sigma)
+              p_gh.add('sigma',value=1.2*sigma, vary=True, min=sigma)
               print ("FITTING METHOD: SINGLE GAUSSIAN")
               print ("Input(i0,l0,sigma):  %10.3E %5.2f %5.2f"%(amp, center, sigma))
               gausserr_gh = lambda p,x,y: gaussfunc(p,x)-y
@@ -289,7 +289,7 @@ def main(args=None):
               p_gh.add('center2',value=center2, vary=True);
               p_gh.add('sigma2',value=sigma2, vary=True, min=1.5*sigma1);
               print ("FITTING METHOD: DOUBLE GAUSSIAN")
-              print ("Input(i1,l1,sig1,i2,l2,sig2):  %10.3E %5.2f %5.2f %10.3E %5.2f %5.2f"%(amp1, center1, sigma1, amp2, center2, sigma2))
+              print ("Input(i1,l1,sig1,i2,l2,sig2):  %10.3E %5.2f %5.2f %10.3E %5.2f %5.2f"%(amp1, center1, sigma1, args.scale_amp2*amp2, center2, sigma2))
               gausserr_gh = lambda p,x,y: gauss2func(p,x)-y
                 
           fitout_gh=minimize(gausserr_gh,p_gh,args=(wline,fpline))
@@ -323,7 +323,7 @@ def main(args=None):
               pars_gh=[fitout_gh.params['amp1'].value,fitout_gh.params['center1'].value,fitout_gh.params['sigma1'].value,fitout_gh.params['amp2'].value,fitout_gh.params['center2'].value,fitout_gh.params['sigma2'].value,fitout_gh.chisqr] 
               fit_gh=gauss2func(fitted_p_gh,wline)
               print ("Output(i1,l1,sig1,i2,l2,sig2): %10.3E %5.2f %5.2f %10.3E %5.2f %5.2f"%(fitout_gh.params['amp1'].value, fitout_gh.params['center1'].value, fitout_gh.params['sigma1'].value, fitout_gh.params['amp2'].value, fitout_gh.params['center2'].value, fitout_gh.params['sigma2'].value))
-          print ("CDELT1: %6.3f Angstroms/pixel"%(cdelt))
+#          print ("CDELT1: %6.3f Angstroms/pixel"%(cdelt))
           eEWd=(rms*cdelt*(cdelt*np.sum(fpline)/lcmean)/(cdelt*np.sum(fpline)))*np.sqrt(2*len(fpline)+np.sum(fpline)/lcmean+(np.sum(fpline)/lcmean)**2/len(fpline))
           eEWm=(rms*cdelt*(cdelt*np.sum(fit_gh)/lcmean)/(cdelt*np.sum(fit_gh)))*np.sqrt(2*len(fit_gh)+np.sum(fit_gh)/lcmean+(np.sum(fpline)/lcmean)**2/len(fit_gh))
           print ("Flux & EW from data:  %10.3E+/-%10.3E %5.2f+/-%5.2f"%(cdelt*np.sum(fpline), rms*cdelt*np.sqrt(2*len(fpline)+(np.sum(fpline)/lcmean)), cdelt*np.sum(fpline)/lcmean, eEWd)) # Errors as in Tresse et al. (1999)

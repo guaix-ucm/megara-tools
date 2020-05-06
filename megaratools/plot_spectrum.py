@@ -31,6 +31,8 @@ def main(args=None):
     parser.add_argument('-n', '--no-legend', default=False, action="store_true", help='Legend?')
     parser.add_argument('-L1', '--min-lambda', metavar='INITIAL LAMBDA', help='Initial (rest-frame) lambda to plot', type=float)
     parser.add_argument('-L2', '--max-lambda', metavar='LAST LAMBDA', help='Last (rest-frame) lambda to plot', type=float)
+    parser.add_argument('-F1', '--min-flambda', metavar='YMIN FLUX', help='Minimum flux to plot', type=float)
+    parser.add_argument('-F2', '--max-flambda', metavar='YMAX FLUX', help='Maximum flux to plot', type=float)
     parser.add_argument('-T', '--title', metavar='PLOT TITLE', help='Title of the plot')
 
     args = parser.parse_args(args=args)
@@ -170,6 +172,10 @@ def main(args=None):
         plt.xlim(left=((1+z)*args.min_lambda))
     if args.max_lambda != None:
         plt.xlim(right=((1+z)*args.max_lambda))
+    if args.min_flambda != None:
+        plt.ylim(bottom=args.min_flambda)
+    if args.max_flambda != None:
+        plt.ylim(top=args.max_flambda)
 
     if args.std_table!=None or args.spectrum!=None:
        plt.xlabel('wavelength')
