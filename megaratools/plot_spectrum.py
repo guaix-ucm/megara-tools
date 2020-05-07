@@ -41,7 +41,7 @@ def main(args=None):
     c_amstrong = 2.99792e+18  # Light speed in AA/s
     gtceffarea = 7.3e+5 # GTC effective area in cm**2
 # Internal parameters
-    plosses = 0.40 # Pupil losses
+    plosses = 0.80 # Pupil losses
     tlosses = 0.80 # Telescope losses (relative to effective area)
 
     if args.redshift is not None:
