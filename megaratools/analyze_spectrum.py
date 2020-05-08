@@ -1,7 +1,11 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
+#
+# Copyright 2019-2020 Universidad Complutense de Madrid
+#
+# This file is part of Megara Tools
+#
+# SPDX-License-Identifier: GPL-3.0+
+# License-Filename: LICENSE.txt
+#
 
 
 import numpy as np
@@ -53,9 +57,6 @@ def gaussfunc_gh(paramsin,x):
     return gaustot_gh
 
 
-# In[5]:
-
-
 def gauss2func(paramsin,x):
     amp1=paramsin['amp1'].value;
     amp2=paramsin['amp2'].value;
@@ -69,8 +70,6 @@ def gauss2func(paramsin,x):
     gaus2=amp2*np.exp(-.5*g2**2)
     gaustot_2g=(gaus1+gaus2)
     return gaustot_2g
-
-# In[10]:
 
 
 def main(args=None):
@@ -402,8 +401,6 @@ def main(args=None):
           else:
              plt.show()
 
-
-# In[11]:
 
 if __name__ == '__main__':
     

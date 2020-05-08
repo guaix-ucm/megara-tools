@@ -1,3 +1,12 @@
+#
+# Copyright 2019-2020 Universidad Complutense de Madrid
+#
+# This file is part of Megara Tools
+#
+# SPDX-License-Identifier: GPL-3.0+
+# License-Filename: LICENSE.txt
+#
+
 from __future__ import print_function
 import numpy as np
 import math

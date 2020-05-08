@@ -1,5 +1,12 @@
-#!/usr/bin/env python
-# coding: utf-8
+#
+# Copyright 2019-2020 Universidad Complutense de Madrid
+#
+# This file is part of Megara Tools
+#
+# SPDX-License-Identifier: GPL-3.0+
+# License-Filename: LICENSE.txt
+#
+
 
 def main(args=None):
     import shapely.geometry as sg
