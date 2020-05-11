@@ -28,6 +28,7 @@ def main(args=None):
     parser.add_argument('-p', '--outplot', metavar='OUTPUT-PLOT', help='Output plots', type=argparse.FileType('w'))
     parser.add_argument('-b', '--binning', metavar='SPECTRAL-BINNING', default=50, help='Binning in the spectral direction', type=int)
     parser.add_argument('-e', '--exclude', metavar='EXCLUDE-REGION', help='Exclude region (c1 c2 r1 r2), e.g. 2407 2720 0 164', nargs='+', type=int)
+    parser.add_argument('-2D', '--two-dimensional', default=False, action="store_true", help='Two-dimensional fitting?')
 
     args = parser.parse_args(args=args)
 
@@ -60,6 +61,8 @@ def main(args=None):
     columns = np.arange(0,naxis1)
     rows = np.arange(0,naxis2)
     model = np.empty_like(image2d)
+    model2 = np.empty_like(image2d)
+    bmodel = np.empty_like(image2d)
     
     if args.outplot!=None:
         pdf_pages = PdfPages(args.outplot.name)
@@ -98,13 +101,39 @@ def main(args=None):
         else:
              plt.show()
 
+    if (args.two_dimensional):
+        for i in rows[args.binning::args.binning]:
+            fluxes = np.nanmean(model[i-args.binning:i+args.binning,:],axis=0)
+            plt.clf()
+            plt.plot(columns,fluxes)
+            bsize = min(i+args.binning,naxis2)-(i-args.binning)
+            dfit=np.polyfit(columns,fluxes,args.degree)
+            pdfit = np.poly1d(dfit)
+            plt.plot(columns,pdfit(columns))
+            tmp = np.transpose(np.tile(pdfit(columns).reshape(naxis1,1),bsize))
+            model2[i-args.binning:i+args.binning,:]=tmp
+            print('row:',i)
+
+            plt.title('row: '+str(i+1))
+            plt.xlabel('X-position')
+            plt.ylabel('Flux')
+            if args.outplot!=None:
+                 pdf_pages.savefig()
+            else:
+                 plt.show()
+
     if args.outplot!=None:
         pdf_pages.close()
     plt.close()
-        
-    hdulist[0].data = model
+
+    if (args.two_dimensional):
+        bmodel = model2
+    else:
+        bmodel = model
+
+    hdulist[0].data = bmodel
     hdulist.writeto(args.output.name, overwrite = True)
-    hdulist[0].data = image2d - model
+    hdulist[0].data = image2d - bmodel
     hdulist.writeto(args.residuals.name, overwrite = True)
     hdulist.close()
 
