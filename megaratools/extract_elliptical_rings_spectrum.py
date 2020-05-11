@@ -90,8 +90,6 @@ def main(args=None):
             total_area = 0
     hdu[0].data = rings_data
     hdu.writeto(args.saved_rss, overwrite = True)
-    
-# In[123]:
 
 
 def intersection(x_offset,y_offset,ell_x_offset,ell_y_offset,angle,a_ext,a_int,ellipticity):
