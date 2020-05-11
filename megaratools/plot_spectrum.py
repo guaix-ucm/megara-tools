@@ -1,21 +1,26 @@
+#
+# Copyright 2019-2020 Universidad Complutense de Madrid
+#
+# This file is part of Megara Tools
+#
+# SPDX-License-Identifier: GPL-3.0+
+# License-Filename: LICENSE.txt
+#
+
+import argparse
+import sys
+import csv
+
 import numpy as np
-import math
 import random
 import matplotlib.pyplot as plt
 import matplotlib.transforms as transforms
 from astropy.io import fits
-import argparse
-import sys
-import csv
+
+from .analyze import axvlines
+
 plt.rcParams.update({'font.size': 10})
 
-def axvlines(xs, **plot_kwargs):
-    xs = np.array((xs, ) if np.isscalar(xs) else xs, copy=False)
-    lims = plt.gca().get_ylim()
-    x_points = np.repeat(xs[:, None], repeats=3, axis=1).flatten()
-    y_points = np.repeat(np.array(lims + (np.nan, ))[None, :], repeats=len(xs), axis=0).flatten()
-    plot = plt.plot(x_points, y_points, scaley = False, **plot_kwargs)
-    return plot
 
 def main(args=None):
 # Parser
@@ -194,4 +199,3 @@ def main(args=None):
 if __name__ == '__main__':
 
     main()
-
