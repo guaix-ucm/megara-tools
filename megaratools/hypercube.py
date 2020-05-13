@@ -8,66 +8,31 @@
 #
 
 import math
-
-
+from pathlib import Path
 import numpy as np
 from astropy.io import fits
 
 import megaradrp.processing.cube as mcube
 
-
-#def combine_cube(list_cubes,stattype):
-#    import astropy.io.fits as fits
-#    import argparse
-#    import numpy as np
-#        
-##    parser = argparse.ArgumentParser(description='Combining by averaging aligned RSS files',prog='combine_rss')
-##    parser.add_argument("rss",help="Input table with list of RSS files",type=argparse.FileType('rb'))
-##    parser.add_argument('-o', '--output', default='combined_rss.fits', metavar='OUTPUT RSS', help='Output RSS', type=argparse.FileType('w'))
-##    parser.add_argument('-t', '--stattype', default=0, choices=[0,1], metavar='COMBINATION TYPE', help='Type of combination (mean=0, median=1)', type=int)
-##    args = parser.parse_args(args=args)
-#
-#    refima = fits.open(list_cubes[0])
-#    nx = refima[0].header['NAXIS1']
-#    ny = refima[0].header['NAXIS2'] 
-#    nz = refima[0].header['NAXIS3'] 
-#    
-#    alldata = np.zeros((nz,ny,nx,len(list_cubes)), float)
-#    
-#    for ifile in list_cubes:
-#        hdu = fits.open(ifile)
-#        alldata[:,:,:,list_cubes.index(ifile)] = hdu[0].data
-#       
-#    if (stattype) is 0:
-#       avgdata = np.mean(alldata, axis=3)
-#    elif (stattype) is 1:
-#       avgdata = np.median(alldata, axis=3)
-#    else:
-#       avgdata = np.sum(alldata, axis=3)
-#
-#    refima[0].data = avgdata
-#    return refima
-#    refima.writeto(args.output.name, overwrite = True)
-
-
 def trim_cubes(cube_file, trim_numbers):
     hdu = fits.open(cube_file)
     data = hdu[0].data
     for i in range(trim_numbers[0]):
-        data = np.delete(data,0,1)   # Corto líneas de píxeles de abajo.
+        data = np.delete(data,0,1)   # Corto filas de pixeles de abajo.
     for i in range(trim_numbers[1]):
-        data = np.delete(data,-1,1)  # Corto líneas de píxeles de arriba.
+        data = np.delete(data,-1,1)  # Corto files de pixeles de arriba.
     for i in range(trim_numbers[2]):
-        data = np.delete(data,0,2)   # Corto líneas de píxeles de la izquierda.
+        data = np.delete(data,0,2)   # Corto columnas de pixeles de la izquierda.
     for i in range(trim_numbers[3]):
-        data = np.delete(data,-1,2)  # Corto líneas de píxeles de la derecha.
+        data = np.delete(data,-1,2)  # Corto columnas de pixeles de la derecha.
     hdu[0].header['NAXIS1'] = hdu[0].header['NAXIS1'] - 2
     hdu[0].header['NAXIS2'] = hdu[0].header['NAXIS2'] - 3
     hdu[0].header['CRPIX1'] = hdu[0].header['CRPIX1'] - 1
     hdu[0].header['CRPIX2'] = hdu[0].header['CRPIX2'] - 1
     hdu[0].data = data
-    hdu.writeto('trimmed_' + cube_file, overwrite=True)
-
+    path = Path(cube_file)
+    new_path = path.parent / ('trimmed_' + path.name)
+    hdu.writeto(str(new_path), overwrite=True)
 
 def helio_corr(ifile):
     from astropy.time import Time
@@ -78,14 +43,12 @@ def helio_corr(ifile):
 
     obs_date = h1_0['DATE-OBS'].split('T')[0]
 
-#    roque = EarthLocation.of_site('Roque de los Muchachos')
     roque = EarthLocation.from_geodetic(lat=28.7606*u.deg, lon=342.1184*u.deg, height=2326*u.m)
     sc = SkyCoord(ra=h1_0['RADEG']*u.deg, dec=h1_0['DECDEG']*u.deg)
     heliocorr = sc.radial_velocity_correction('heliocentric', obstime=Time(obs_date), location=roque)  
     helio_corr_velocity = heliocorr.to(u.km/u.s).value
 
     return helio_corr_velocity
-
 
 def hypercube_dimensions(list_cubes, xoff, yoff, target_scale):
     RA_list = []
@@ -95,26 +58,20 @@ def hypercube_dimensions(list_cubes, xoff, yoff, target_scale):
         RA_list.append(hdu[0].header['RADEG'] + (xoff[i]/3600))
         DEC_list.append(hdu[0].header['DECDEG'] + (yoff[i])/3600)
     pixel_size_x = target_scale/np.cos(hdu[0].header['DECDEG']*np.pi/180) # Este es el que aparece al medir en la imagen # arcsec
-    pixel_size_y = target_scale # arcsec sin tener en cuenta posición del telescopio
+    pixel_size_y = target_scale # arcsec sin tener en cuenta posicion del telescopio
    
     ref_data = fits.open(list_cubes[0])[0].data
     data_size_x = ref_data.shape[2]
     data_size_y = ref_data.shape[1]  
-    data_size_z = ref_data.shape[0]  # Dirección espectral
+    data_size_z = ref_data.shape[0]  # Direccion espectral
 
-### Con las dos líneas siguientes calculo el tamaño del hipercubo ###
-    
     hypercube_size_x = int(round((abs(max(RA_list)-min(RA_list))*3600/pixel_size_x) + data_size_x)) # De centro a centro + otro apuntado entero 
     hypercube_size_y = int(round((abs(max(DEC_list)-min(DEC_list))*3600/pixel_size_y) + data_size_y)) # De centro a centro + otro apuntado entero 
     hypercube_size_z = data_size_z
-    # Devuelve 7 cosas #
     return hypercube_size_x, hypercube_size_y, hypercube_size_z, RA_list, DEC_list, pixel_size_x, pixel_size_y, data_size_x, data_size_y
 
-
-## Con esto creo la máscara ##
 def to_bool(s):
     return True if s == '1' else False
-
 
 def mask_bin(list_cubes, outfile, xoff, yoff, target_scale):
     hypercube_size_x, hypercube_size_y, hypercube_size_z, RA_list, DEC_list, pixel_size_x, pixel_size_y, data_size_x, data_size_y = hypercube_dimensions(list_cubes, xoff, yoff, target_scale)
@@ -130,7 +87,10 @@ def mask_bin(list_cubes, outfile, xoff, yoff, target_scale):
     hdu[0].header['NAXIS'] = 2
     hdu[0].header['NAXIS1'] = mask.shape[1]
     hdu[0].header['NAXIS2'] = mask.shape[0]    
-    hdu.writeto(str(outfile + '_hypercube_mask.fits'), overwrite=True)
+    path = Path(outfile)
+    new_path = path.parent / (path.stem + '_mask' + path.suffix)
+    hdu.writeto(str(new_path), overwrite=True)
+#    hdu.writeto(str(outfile + '_hypercube_mask.fits'), overwrite=True)
     boolean_mask = np.empty(mask.shape,dtype=object)
     for j in range(mask.shape[0]):
         for k in range(mask.shape[1]):
@@ -143,8 +103,6 @@ def mask_bin(list_cubes, outfile, xoff, yoff, target_scale):
             boolean_mask[j,k] = np.array(a)
     
     return mask, boolean_mask
-### Función de rebineado ###
-
 
 def rebin_spec(wave, specin, wavnew):
     from pysynphot import observation
@@ -157,25 +115,13 @@ def rebin_spec(wave, specin, wavnew):
  
     return obs.binflux
 
-
 def grid_combined_cube(list_cubes, helio_corr_apply, outfile, xoff, yoff, scale_a, scale_m, target_scale):
     from itertools import compress
     from astropy.time import Time
     from astropy.coordinates import SkyCoord, EarthLocation
     import astropy.units as u
-#    from sklearn.neighbors import NearestNeighbors
-    
-    # list_cubes = ['cube_reduced_rss_OB0001_B.fits','cube_reduced_rss_OB0002_B.fits','cube_reduced_rss_OB0003_B.fits','cube_reduced_rss_OB0004_B.fits']
-    # offsets_in_list = np.loadtxt('lista_LR-B', usecols=(1,2,3,4))
-    # xoff = offsets_in_list[:,0]
-    # yoff = offsets_in_list[:,1]  # Estas lineas solo son necesarias si no lo corro desde terminal.
-    # scale_a = offsets_in_list[:,2]
-    # scale_m = offsets_in_list[:,3]    
-    # target_scale= 0.45
-    # outfile= 'dummy'
 
     hypercube_size_x, hypercube_size_y, hypercube_size_z, RA_list, DEC_list, pixel_size_x, pixel_size_y, data_size_x, data_size_y = hypercube_dimensions(list_cubes, xoff, yoff, target_scale)
-
 
     hypercube = np.zeros([hypercube_size_z,hypercube_size_y,hypercube_size_x])
     alldata = np.zeros((hypercube_size_z,hypercube_size_y,hypercube_size_x,len(list_cubes)), float)
@@ -187,18 +133,15 @@ def grid_combined_cube(list_cubes, helio_corr_apply, outfile, xoff, yoff, scale_
             offset_pixels_y = int(round((abs((DEC_list[i]-min(DEC_list))*3600/pixel_size_y))))        
             hdu = fits.open(ifile)
             data_ifile = hdu[0].data
-    ##################################################################################################################
             
             h1_0 = hdu[0].header
             lambda_obs = h1_0['CRVAL3'] + h1_0['CDELT3']*np.arange(h1_0['NAXIS3'])
             lambda_em = np.zeros(data_ifile.shape)
             step = h1_0['CDELT3']
             
-            
             helio_corr_velocity = helio_corr(ifile)
             print('Applying heliocentric correction to', ifile, '\n')
             print('Velocity correction:', helio_corr_velocity)
-            ### A partir de aquí aplico la corrección de velocidad heliocéntrica a los espectros. ###
             
             c = 299792.458 # km/s
             
@@ -217,7 +160,6 @@ def grid_combined_cube(list_cubes, helio_corr_apply, outfile, xoff, yoff, scale_
                     spec_helio_corr[:,j,k] = rebin_spec(lambda_em, data_ifile[:,j,k], lambda_completa)
                     alldata[:,j+offset_pixels_y,k+offset_pixels_x,i] = spec_helio_corr[:,j,k]*scale_m[i] + scale_a[i]
 
-##################################################################################################################
     else:
         print('No heliocentric correction applied')
         for i, ifile in enumerate(list_cubes):
@@ -253,23 +195,16 @@ def grid_combined_cube(list_cubes, helio_corr_apply, outfile, xoff, yoff, scale_
                         print(flux_factor, list_cubes[i+1])
                         print('Flux calibrated with', list_cubes[valm])
                         break
-    #                        break
-    #                    break
         while_loop_count+=1
         
     for i, ifile in enumerate(range(len(list_cubes))[::-1]):
-        # print(ifile)
         for j in range(hypercube_size_y):
             for k in range(hypercube_size_x):
                 if np.mean(alldata[:,j,k,ifile]) > 0:
                     hypercube[:,j,k] = alldata[:,j,k,ifile]
 
     hdu[0].data = hypercube
-    hdu.writeto(str(outfile + '_hypercube.fits'), overwrite=True)
-    
-
-
- ############################################################################################################
+    hdu.writeto(str(outfile), overwrite=True)
 
 
 def main(args=None):
@@ -290,15 +225,15 @@ def main(args=None):
     parser.add_argument('-p', '--pixel-size', type=float, default=0.4,
                         metavar='PIXEL_SIZE',
                         help="Pixel size in arc seconds (default = 0.4)")
-#    parser.add_argument('-t', '--stattype', default=0, choices=[0,1,2], metavar='COMBINATION TYPE', help='Type of combination (mean=0, median=1, sum=2)', type=int)
     parser.add_argument('-o', '--outfile', default='test',
                         help="Name of the output cube file (default = test")
     parser.add_argument('-d', '--disable-scaling', action='store_true',
                         help="Disable flux conservation")
+    parser.add_argument('-m', '--method', action='store', choices=['nn', 'linear'],
+                        default='nn', help="Method of interpolation")
     parser.add_argument('--wcs-pa-from-header', action='store_true',
                         help="Use PA angle from header", dest='pa_from_header')
     parser.add_argument('-trim', '--trimming', default=False, action="store_true", help='Use for trimming the cubes')
-    # parser.add_argument('-comb', '--combine', default=False, action="store_true", help='Use for -s being a list of FITS spectra')
     parser.add_argument('-hyp', '--hyper', default=False, action="store_true", help='Use for creating the hypercube')
     parser.add_argument('-helio', '--helio', default=False, action="store_true", help='Use for applying heliocentric velocity correction')
     parser.add_argument('-trimn', '--trimming-numbers', nargs='*', default= [1,2,1,1], help='Use for declare the number of rows and columns you want to trim. [Bottom rows, top rows, left column, right column] (default= 1,2,1,1)')
@@ -330,7 +265,10 @@ def main(args=None):
         print('target scale is', target_scale, 'arcsec')
         list_cubes = []
         for i in list_files:
-            cout = 'cube_' + i
+#            cout = str(Path(i).parent) + './cube_' + str(Path(i).name)
+            path = Path(i)
+            new_path = path.parent / ('cube_' + path.name)
+            cout = str(new_path)
             list_cubes.append(cout)
             rss = fits.open(i)
 
@@ -349,10 +287,6 @@ def main(args=None):
     else:
         list_cubes = list_files
         
-    # if args.combine == True:     
-    #     print ('\n', 'Calling combine_cube...', '\n',)
-#        combine_cube(list_cubes,args.stattype).writeto(str(args.outfile + '.fits'), overwrite=True)
-    
     if args.trimming:
         print ('\n', 'Trimming cubes...', '\n')
         list_trimmed_cubes = []
@@ -360,7 +294,10 @@ def main(args=None):
         trim_numbers = [ int(x) for x in trim_numbers ]
         print(trim_numbers)
         for i, ifile in enumerate(list_cubes):
-            list_trimmed_cubes.append('trimmed_' + ifile)
+            path = Path(ifile)
+            new_path = path.parent / ('trimmed_' + path.name)
+            list_trimmed_cubes.append(str(new_path))
+#            list_trimmed_cubes.append(str(Path(ifile).parent) + './trimmed_' + str(Path(ifile).name))
             trim_cubes(ifile, trim_numbers)
     
     if args.helio:
@@ -377,6 +314,4 @@ def main(args=None):
             grid_combined_cube(list_cubes, helio_corr_apply, outfile, xoff, yoff, scale_a, scale_m, target_scale)
 
 if __name__ == '__main__':
-#    mypars = ['final_rss.list','-l','-t','2','-p','0.4']
-#    main(mypars)
     main()
