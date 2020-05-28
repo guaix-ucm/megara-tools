@@ -7,7 +7,6 @@
 # License-Filename: LICENSE.txt
 #
 
-
 import argparse, textwrap
 import sys
 import csv
@@ -21,7 +20,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 from .analyze import axvlines
 from .analyze import gaussfunc, gauss2func, gaussfunc_gh
 from .analyze import linfunc
-
 
 def main(args=None):
 # Parser
@@ -107,8 +105,6 @@ def main(args=None):
        z=0.
 
 # Plotting
-#    if args.spec_table!=None or args.spectrum!=None:
-#       plt.figure()
 
     if args.spectrum!=None:   
        ima = fits.open(args.spectrum)
@@ -196,8 +192,10 @@ def main(args=None):
        plt.legend()
 
        plt.show()
-#       plt.close()
 
+       answer = input('Continue (Y/n)? ')
+       if len(answer) is not 0 and answer[0].lower() == "n":
+          sys.exit(1)
             
 # Reading spectrum/spectra
        with PdfPages(args.output) as pdf:
