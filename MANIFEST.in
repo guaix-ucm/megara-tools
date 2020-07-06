@@ -1,2 +1,2 @@
 include pyproject.toml
-include AUTHORS.txt
+include AUTHORS.rst
