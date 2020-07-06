@@ -1,2 +1,3 @@
 include pyproject.toml
 include AUTHORS.rst
+exclude .gitignore
