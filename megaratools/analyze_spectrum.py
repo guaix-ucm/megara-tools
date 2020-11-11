@@ -23,12 +23,9 @@ import sys
 import csv
 from lmfit import minimize, Parameters, fit_report
 
-#from .analyze import axvlines
-#from .analyze import gaussfunc, gaussfunc_gh, gauss2func
-#from .analyze import linfunc
-from analyze import axvlines
-from analyze import gaussfunc, gaussfunc_gh, gauss2func
-from analyze import linfunc
+from .analyze import axvlines
+from .analyze import gaussfunc, gaussfunc_gh, gauss2func
+from .analyze import linfunc
 
 
 def main(args=None):

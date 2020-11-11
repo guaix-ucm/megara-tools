@@ -23,12 +23,9 @@ import warnings
 from lmfit import minimize, Parameters, fit_report
 from matplotlib.backends.backend_pdf import PdfPages
 
-#from .analyze import axvlines
-#from .analyze import gaussfunc, gauss2func, gaussfunc_gh
-#from .analyze import linfunc
-from analyze import axvlines
-from analyze import gaussfunc, gauss2func, gaussfunc_gh
-from analyze import linfunc
+from .analyze import axvlines
+from .analyze import gaussfunc, gauss2func, gaussfunc_gh
+from .analyze import linfunc
 
 def main(args=None):
 # Parser
