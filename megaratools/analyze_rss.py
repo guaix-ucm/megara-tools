@@ -14,12 +14,21 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
-from lmfit import minimize, Parameters
+from astropy.time import Time
+import astropy.units as u
+from astropy.coordinates import Angle
+from astropy.coordinates import SkyCoord, EarthLocation
+import warnings
+
+from lmfit import minimize, Parameters, fit_report
 from matplotlib.backends.backend_pdf import PdfPages
 
-from .analyze import axvlines
-from .analyze import gaussfunc, gauss2func, gaussfunc_gh
-from .analyze import linfunc
+#from .analyze import axvlines
+#from .analyze import gaussfunc, gauss2func, gaussfunc_gh
+#from .analyze import linfunc
+from analyze import axvlines
+from analyze import gaussfunc, gauss2func, gaussfunc_gh
+from analyze import linfunc
 
 def main(args=None):
 # Parser
@@ -87,17 +96,35 @@ def main(args=None):
     parser.add_argument('-v', '--verbose', default=False, action="store_true", help='Verbose mode for fitting results?')
     parser.add_argument('-O', '--output-rss', default="analyze_rss.fits", metavar='OUTPUT RSS FILE', help='Output RSS file', type=argparse.FileType('bw'))
     parser.add_argument('-of', '--output-fibers', metavar='OUTPUT FIBERS LIST', help='Output list of fibers above minimum Signal-to-noise ratio', type=argparse.FileType('bw'))
-
+    parser.add_argument('-a', '--absorption', default=False, action="store_true", help='Are you analyzing an absorption feature?')
+    parser.add_argument('-i', '--index', default=False, action="store_true", help='Measuring spectral indices?')
+    parser.add_argument('-H', '--heliocentric', default=False, action="store_true", help='Apply heliocentric correction to velocities?')
+    parser.add_argument('-co', '--coord', metavar='TARGET COORDINATES', help='Coordinates ("01:58:00 +65:43:05")')
+    parser.add_argument('-tm', '--time', metavar='TIME', help='Time in format "2019-09-24T02:23:22.19"')
 
     args = parser.parse_args(args=args)
     
     plt.rcParams.update({'figure.max_open_warning': 0})
+    warnings.filterwarnings("ignore")
     
 # Constants
     c_amstrong = 2.99792e+18  # Light speed in AA/s
     c_km = 2.99792e+5 # Light speed in km/s
     nonfit = float('NaN') # Value assigned to the out parameters when fit is not performed (could be 0. or NaN)
     zero = np.float64(0.0)
+
+# Heliocentric correction
+    if (args.heliocentric and args.coord is not None and args.time is not None):
+        gtc = EarthLocation.of_site('lapalma')
+        heliocorr = SkyCoord(args.coord, frame='fk5', unit=(u.hourangle, u.deg)).radial_velocity_correction('heliocentric', obstime=Time(args.time), location=gtc)
+        helio2 = heliocorr.to(u.km/u.s)
+        vheliocorr = float(helio2.value)
+        if (args.verbose):
+            print ("Heliocentric correction (km/s): %5.2f"%(vheliocorr))
+    else:
+        if (args.verbose):
+            print ("No heliocentric correction is computed.")
+        vheliocorr = 0.
 
     if args.redshift is not None:
        z=float(args.redshift)
@@ -267,32 +294,52 @@ def main(args=None):
               fcont = []
               wcont = []
               fcont = flux[int((float(args.ccut1)*(1.+z)-lambda0)/cdelt+crpix):int((float(args.ccut2)*(1.+z)-lambda0)/cdelt+crpix)]
-#              wcont = wave[int((float(args.ccut1)*(1.+z)-lambda0)/cdelt+crpix):int((float(args.ccut2)*(1.+z)-lambda0)/cdelt+crpix)]
 
 # Excluding range
               if (args.eccut1 is not None and args.eccut2 is not None):
+                  fcont1 = [element * 1 for element in fcont]
+                  fcont2 = [element * 1 for element in fcont]
                   del fcont[int((float(args.eccut1) * (1. + z) - lambda0) / cdelt + crpix) - int(
                       (float(args.ccut1) * (1. + z) - lambda0) / cdelt + crpix):int(
                       (float(args.eccut2) * (1. + z) - lambda0) / cdelt + crpix) - int(
                       (float(args.ccut1) * (1. + z) - lambda0) / cdelt + crpix)]
+                  del fcont1[int((float(args.eccut1)*(1.+z)-lambda0)/cdelt+crpix)-int((float(args.ccut1)*(1.+z)-lambda0)/cdelt+crpix):]
+                  del fcont2[:int((float(args.eccut2)*(1.+z)-lambda0)/cdelt+crpix)-int((float(args.ccut1)*(1.+z)-lambda0)/cdelt+crpix)]
+
               wcont = wave[int((float(args.ccut1) * (1. + z) - lambda0) / cdelt + crpix):int(
                   (float(args.ccut2) * (1. + z) - lambda0) / cdelt + crpix)]
+
               if (args.eccut1 is not None and args.eccut2 is not None):
+                  wcont1 = [element * 1 for element in wcont]
+                  wcont2 = [element * 1 for element in wcont]
                   del wcont[int((float(args.eccut1) * (1. + z) - lambda0) / cdelt + crpix) - int(
                       (float(args.ccut1) * (1. + z) - lambda0) / cdelt + crpix):int(
                       (float(args.eccut2) * (1. + z) - lambda0) / cdelt + crpix) - int(
                       (float(args.ccut1) * (1. + z) - lambda0) / cdelt + crpix)]
+                  del wcont1[int((float(args.eccut1)*(1.+z)-lambda0)/cdelt+crpix)-int((float(args.ccut1)*(1.+z)-lambda0)/cdelt+crpix):]
+                  del wcont2[:int((float(args.eccut2)*(1.+z)-lambda0)/cdelt+crpix)-int((float(args.ccut1)*(1.+z)-lambda0)/cdelt+crpix)]
+
               cmean = np.mean(fcont)
+              if (args.eccut1 is not None and args.eccut2 is not None):
+                  cmean1 = np.mean(fcont1)
+                  cmean2 = np.mean(fcont2)
+                  wmean1 = np.mean(wcont1)
+                  wmean2 = np.mean(wcont2)
+                  widx = [wmean1,wmean2]
+                  cidx = [cmean1,cmean2]
 
 # Fitting continuum
               p_lin = Parameters()
               p_lin.add('slope', value=zero, vary=True)
               p_lin.add('yord', value=cmean, vary=True)
               if (args.verbose):
-                print("FITTING CONTINUUM:")
-                print("Input(slope,yord):  %10.3E %10.3E" % (0., cmean))
+                  print("FITTING CONTINUUM:")
+                  print("Input(slope,yord):  %10.3E %10.3E" % (0., cmean))
               err_lin = lambda p, x, y: linfunc(p, x) - y
-              fitout_lin = minimize(err_lin, p_lin, args=(wcont, fcont))
+              if (args.eccut1 is not None and args.eccut2 is not None and args.index):
+                  fitout_lin = minimize(err_lin,p_lin,args=(widx,cidx))
+              else:
+                  fitout_lin = minimize(err_lin, p_lin, args=(wcont, fcont))
               fitted_p_lin = fitout_lin.params
               pars_lin = [fitout_lin.params['slope'].value, fitout_lin.params['yord'].value,fitout_lin.chisqr]
               if (args.verbose):
@@ -303,19 +350,20 @@ def main(args=None):
               residuals = fcont - fit_con
               rms = np.std(residuals)
 
-# Arrays for line profile
+# Determining if it is an absorption or emission profile
+              sign = -2.0*float(int(args.absorption))+1.0
 
+# Arrays for line profile
               fline = []
               fpline = []
               wline = []
               fline = flux[int((float(args.lcut1)*(1.+z)-lambda0)/cdelt+crpix):int((float(args.lcut2)*(1.+z)-lambda0)/cdelt+crpix)]
               wline = wave[int((float(args.lcut1)*(1.+z)-lambda0)/cdelt+crpix):int((float(args.lcut2)*(1.+z)-lambda0)/cdelt+crpix)]
-              peak = np.amax(fline)
+              peak = np.amax(sign*np.array(fline))
               fit_lin = linfunc(fitted_p_lin, wline)
               lcmean = np.mean(fit_lin)  # Mean continuum within the line range
               fpline = fline - fit_lin
-#              fpline = fline - cmean
-              result = np.where(fline == np.amax(fline))
+              result = np.where(sign*np.array(fline) == np.amax(sign*np.array(fline)))
               lpeak = wline[result[0][0]]
             
               CONTINUUM.append(lcmean)
@@ -329,7 +377,6 @@ def main(args=None):
                   2 * len(fpline) + np.sum(fpline) / lcmean + (np.sum(fpline) / lcmean) ** 2 / len(fpline))
 
               if np.isfinite(peak/rms) and (peak/rms) >= float(args.limsnr) and ispec!=623:
-#                  print(ispec)
                   FIB.append(ispec)
                   SNR.append(peak/rms)
                   FLUXD.append(cdelt*np.sum(fpline))
@@ -349,7 +396,7 @@ def main(args=None):
 
     # Initial guess on parameters
 
-              amp = peak-lcmean
+              amp = sign*peak-lcmean
               if (args.use_peak) == False:
                 center = float(args.ctwl)*(1.+z)
               else:
@@ -358,9 +405,9 @@ def main(args=None):
               skew = 0.0
               kurt = 0.0
 
-              amp1 = 0.9*(peak-lcmean)
+              amp1 = 0.9*(sign*peak-lcmean)
               sigma1 = (float(args.ctwl)/R)/2.35
-              amp2 = 0.1*(peak-lcmean)
+              amp2 = 0.1*(sign*peak-lcmean)
               sigma2 = 2.*(float(args.ctwl)/R)/2.35
               if (args.use_peak) == False:
                 center1 = float(args.ctwl)*(1.+z)
@@ -403,6 +450,10 @@ def main(args=None):
                   gausserr_gh = lambda p,x,y: gauss2func(p,x)-y
 
               fitout_gh=minimize(gausserr_gh,p_gh,args=(wline,fpline))
+              if np.isfinite(peak/rms) and (peak/rms) >= float(args.limsnr) and ispec!=623 and args.verbose:
+#                 print(ispec)
+                 print(fit_report(fitout_gh.params, show_correl=False))
+
               fitted_p_gh = fitout_gh.params
 
               if args.method is 0:
