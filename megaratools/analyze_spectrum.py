@@ -266,7 +266,7 @@ def main(args=None):
             center1 = lpeak
             center2 = lpeak
                        
-          if args.method is 0:
+          if args.method == 0:
               p_gh=Parameters()
               p_gh.add('amp',value=amp, vary=True)
               p_gh.add('center',value=center, vary=True)
@@ -277,7 +277,7 @@ def main(args=None):
                   print ("FITTING METHOD: GAUSS-HERMITE QUADRATURE")
                   print ("Input(i0,l0,sigma,skew,kurt):  %10.3E %5.2f %5.2f %10.3E %10.3E"%(amp, center, sigma, skew, kurt))
               gausserr_gh = lambda p,x,y: gaussfunc_gh(p,x)-y 
-          if args.method is 1:
+          if args.method == 1:
               p_gh=Parameters()
               p_gh.add('amp',value=amp, vary=True)
               p_gh.add('center',value=center, vary=True)
@@ -286,7 +286,7 @@ def main(args=None):
                   print ("FITTING METHOD: SINGLE GAUSSIAN")
                   print ("Input(i0,l0,sigma):  %10.3E %5.2f %5.2f"%(amp, center, sigma))
               gausserr_gh = lambda p,x,y: gaussfunc(p,x)-y
-          if args.method is 2:
+          if args.method == 2:
               p_gh=Parameters()
               p_gh.add('amp1',value=amp1, vary=True);
               p_gh.add('center1',value=center1, vary=True);
@@ -304,7 +304,7 @@ def main(args=None):
               print(fit_report(fitout_gh.params, show_correl=False))
           fitted_p_gh = fitout_gh.params
           tmp = fitout_gh
-          if args.method is 2:
+          if args.method == 2:
              tmp = fitted_p_gh
              tmp.add('amp',value=tmp['amp1'].value)
              tmp.add('center',value=tmp['center1'].value)
@@ -322,17 +322,17 @@ def main(args=None):
              if (args.verbose):
                  print ("Flux2 from model: %10.3E+/-%10.3E"%(cdelt*np.sum(fit_gh2), rms*cdelt*np.sqrt(2*len(fit_gh2)+(np.sum(fit_gh2)/lcmean)))) # Errors as in Tresse et al. (1999)
 
-          if args.method is 0:
+          if args.method == 0:
               pars_gh=[fitout_gh.params['amp'].value,fitout_gh.params['center'].value,fitout_gh.params['sigma'].value,fitout_gh.params['skew'].value,fitout_gh.params['kurt'].value,fitout_gh.chisqr]
               fit_gh=gaussfunc_gh(fitted_p_gh,wline)
               if (args.verbose):
                   print ("Output(i0,l0,sigma,skew,kurt): %10.3E %5.2f %5.2f %10.3E %10.3E"%(fitout_gh.params['amp'].value, fitout_gh.params['center'].value, fitout_gh.params['sigma'].value, fitout_gh.params['skew'].value, fitout_gh.params['kurt'].value))
-          if args.method is 1:
+          if args.method == 1:
               pars_gh=[fitout_gh.params['amp'].value,fitout_gh.params['center'].value,fitout_gh.params['sigma'].value,fitout_gh.chisqr]
               fit_gh=gaussfunc(fitted_p_gh,wline)
               if (args.verbose):
                   print ("Output(i0,l0,sigma): %10.3E %5.2f %5.2f"%(fitout_gh.params['amp'].value, fitout_gh.params['center'].value, fitout_gh.params['sigma'].value))
-          if args.method is 2:
+          if args.method == 2:
               pars_gh=[fitout_gh.params['amp1'].value,fitout_gh.params['center1'].value,fitout_gh.params['sigma1'].value,fitout_gh.params['amp2'].value,fitout_gh.params['center2'].value,fitout_gh.params['sigma2'].value,fitout_gh.chisqr] 
               fit_gh=gauss2func(fitted_p_gh,wline)
               if (args.verbose):
@@ -346,11 +346,11 @@ def main(args=None):
 
 # Here we should write the results to a file and decide whether we should set them first to zero if S/N is below some threshold
           if (args.minimum_output):
-              if args.method is 0:
+              if args.method == 0:
                  print ("%5.2f %10.3E %10.3E %10.3E %5.2f %d %10.3E %5.2f %5.2f %10.3E %10.3E %10.3E %10.3E %5.2f %5.2f %10.3E %10.3E %5.2f %5.2f"%(vheliocorr, fitout_lin.params['slope'].value, fitout_lin.params['yord'].value, rms, peak/rms, args.method, fitout_gh.params['amp'].value, fitout_gh.params['center'].value, fitout_gh.params['sigma'].value, fitout_gh.params['skew'].value, fitout_gh.params['kurt'].value, cdelt*np.sum(fpline), rms*cdelt*np.sqrt(2*len(fpline)+(np.sum(fpline)/lcmean)), cdelt*np.sum(fpline)/lcmean, eEWd, cdelt*np.sum(fit_gh), rms*cdelt*np.sqrt(2*len(fit_gh)+(np.sum(fit_gh)/lcmean)), cdelt*np.sum(fit_gh)/lcmean, eEWm))
-              if args.method is 1:
+              if args.method == 1:
                  print ("%5.2f %10.3E %10.3E %10.3E %5.2f %d %10.3E %5.2f %5.2f %10.3E %10.3E %5.2f %5.2f %10.3E %10.3E %5.2f %5.2f"%(vheliocorr, fitout_lin.params['slope'].value, fitout_lin.params['yord'].value, rms, peak/rms, args.method, fitout_gh.params['amp'].value, fitout_gh.params['center'].value, fitout_gh.params['sigma'].value, cdelt*np.sum(fpline), rms*cdelt*np.sqrt(2*len(fpline)+(np.sum(fpline)/lcmean)), cdelt*np.sum(fpline)/lcmean, eEWd, cdelt*np.sum(fit_gh), rms*cdelt*np.sqrt(2*len(fit_gh)+(np.sum(fit_gh)/lcmean)), cdelt*np.sum(fit_gh)/lcmean, eEWm))
-              if args.method is 2:
+              if args.method == 2:
                  print ("%5.2f %10.3E %10.3E %10.3E %5.2f %d %10.3E %5.2f %5.2f %10.3E %5.2f %5.2f %10.3E %10.3E %10.3E %10.3E"%(vheliocorr, fitout_lin.params['slope'].value, fitout_lin.params['yord'].value, rms, peak/rms, args.method, fitout_gh.params['amp1'].value, fitout_gh.params['center1'].value, fitout_gh.params['sigma1'].value, fitout_gh.params['amp2'].value, fitout_gh.params['center2'].value, fitout_gh.params['sigma2'].value, cdelt*np.sum(fit_gh1), rms*cdelt*np.sqrt(2*len(fit_gh1)+(np.sum(fit_gh1)/lcmean)), cdelt*np.sum(fit_gh2), rms*cdelt*np.sqrt(2*len(fit_gh2)+(np.sum(fit_gh2)/lcmean))))
 
           plt.plot(wcont, fit_con, 'red', label = 'Continuum fit')
@@ -375,7 +375,7 @@ def main(args=None):
               if (args.eccut1 is not None and args.eccut2 is not None):
                   axvlines(leclines, color='gray', linestyle = '--')
 
-    if args.spec_table!=None:
+    if args.spec_table is not None:
 # Reading standard-star spectrum table
        xdat, ydat = np.loadtxt(args.spec_table, skiprows=1, usecols=(0, 1), unpack=True)
        fydat = []
@@ -403,24 +403,24 @@ def main(args=None):
                 plt.text(slines[i],ylines[i],llines[i],transform=trans,fontsize='smaller')
 
 # Plotting
-    if args.spectrum!=None:
+    if args.spectrum is not None:
        if bunit == 'Jy' or 'CGS' or 'cgs' in bunit:
           plt.ylabel('flux [erg s$^{-1}$ cm$^{-2}$ $\AA$$^{-1}$]')
        else:
           plt.ylabel('ELECTRON')
-    elif args.spec_table!=None:
+    elif args.spec_table is not None:
          plt.ylabel('flux [erg s$^{-1}$ cm$^{-2}$ $\AA$$^{-1}$]')
 
-    if args.spec_table!=None or args.spectrum!=None:
+    if args.spec_table is not None or args.spectrum is not None:
        plt.xlabel('wavelength')
-       if args.no_legend == True:
+       if args.no_legend:
           plt.legend('', frameon=False)
        else:
           plt.legend()
-       if args.plot == True:
+       if args.plot:
           plt.show()
        else:
-          if args.output!=None:
+          if args.output is not None:
              plt.savefig(args.output.name)
           else:
              plt.show()
