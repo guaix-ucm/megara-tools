@@ -62,7 +62,7 @@ def main(args=None):
     parser.add_argument('-o', '--output', metavar='OUTPUT-PDF', help='Output PDF', type=argparse.FileType('w'))
     parser.add_argument('-p', '--plot', default=False, action="store_true" , help='Plot spectrum?')
     parser.add_argument('-n', '--no-legend', default=False, action="store_true", help='Legend?')
-    parser.add_argument('-h', '--heliocentric', default=False, action="store_true", help='Apply heliocentric correction to velocities?')
+    parser.add_argument('--heliocentric', default=False, action="store_true", help='Apply heliocentric correction to velocities?')
     parser.add_argument('-co', '--coord', metavar='TARGET COORDINATES', help='Coordinates ("01:58:00 +65:43:05")')
     parser.add_argument('-tm', '--time', metavar='TIME', help='Time in format "2019-09-24T02:23:22.19"')
     parser.add_argument('-v', '--verbose', default=False, action="store_true", help='Verbose mode?')
