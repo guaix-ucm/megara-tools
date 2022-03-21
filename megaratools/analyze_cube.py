@@ -420,7 +420,7 @@ def main(args=None):
                     center1 = lpeak
                     center2 = lpeak
 
-                  if args.method is 0:
+                  if args.method == 0:
                       p_gh=Parameters()
                       p_gh.add('amp',value=amp, vary=True);
                       p_gh.add('center',value=center, vary=True);
@@ -431,7 +431,7 @@ def main(args=None):
                         print ("FITTING METHOD: GAUSS-HERMITE QUADRATURE")
                         print ("Input(i0,l0,sigma,skew,kurt):  %10.3E %5.2f %5.2f %10.3E %10.3E"%(amp, center, sigma, skew, kurt))
                       gausserr_gh = lambda p,x,y: gaussfunc_gh(p,x)-y
-                  if args.method is 1:
+                  if args.method == 1:
                       p_gh=Parameters()
                       p_gh.add('amp',value=amp, vary=True);
                       p_gh.add('center',value=center, vary=True);
@@ -440,7 +440,7 @@ def main(args=None):
                         print ("FITTING METHOD: SINGLE GAUSSIAN")
                         print ("Input(i0,l0,sigma):  %10.3E %5.2f %5.2f"%(amp, center, sigma))
                       gausserr_gh = lambda p,x,y: gaussfunc(p,x)-y
-                  if args.method is 2:
+                  if args.method == 2:
                       p_gh=Parameters()
                       p_gh.add('amp1',value=amp1, vary=True);
                       p_gh.add('center1',value=center1, vary=True);
@@ -460,21 +460,21 @@ def main(args=None):
 
                   fitted_p_gh = fitout_gh.params
 
-                  if args.method is 0:
+                  if args.method == 0:
                       pars_gh=[fitout_gh.params['amp'].value,fitout_gh.params['center'].value,fitout_gh.params['sigma'].value,fitout_gh.params['skew'].value,fitout_gh.params['kurt'].value,fitout_gh.chisqr]
                       fit_gh=gaussfunc_gh(fitted_p_gh,wline)
                       if (args.verbose):
                         print ("Output(i0,l0,sigma,skew,kurt): %10.3E %5.2f %5.2f %10.3E %10.3E"%(fitout_gh.params['amp'].value, fitout_gh.params['center'].value, fitout_gh.params['sigma'].value, fitout_gh.params['skew'].value, fitout_gh.params['kurt'].value))
                         print('WARNING::::: out.covar == None :::::: Fit Sucess = '+ str(fitout_gh.success) + ' :: Uncertainties estimated = ' + str(fitout_gh.errorbars))
 
-                  if args.method is 1:
+                  if args.method == 1:
                       pars_gh=[fitout_gh.params['amp'].value,fitout_gh.params['center'].value,fitout_gh.params['sigma'].value,fitout_gh.chisqr]
                       fit_gh=gaussfunc(fitted_p_gh,wline)
                       if (args.verbose):
                         print ("Output(i0,l0,sigma): %10.3E %5.2f %5.2f"%(fitout_gh.params['amp'].value, fitout_gh.params['center'].value, fitout_gh.params['sigma'].value))
                         print('WARNING::::: out.covar == None :::::: Fit Sucess = '+ str(fitout_gh.success) + ' :: Uncertainties estimated = ' + str(fitout_gh.errorbars))
 
-                  if args.method is 2:
+                  if args.method == 2:
                       pars_gh=[fitout_gh.params['amp1'].value,fitout_gh.params['center1'].value,fitout_gh.params['sigma1'].value,fitout_gh.params['amp2'].value,fitout_gh.params['center2'].value,fitout_gh.params['sigma2'].value,fitout_gh.chisqr]
                       fit_gh=gauss2func(fitted_p_gh,wline)
                       if (args.verbose):
@@ -540,7 +540,7 @@ def main(args=None):
                       if (args.eccut1 is not None and args.eccut2 is not None):
                         axvlines(leclines, color='gray', linestyle='--')
 
-                      if args.method is 0:
+                      if args.method == 0:
                           H0.append(fitout_gh.params['amp'].value)
                           H1.append(fitout_gh.params['center'].value)
                           H2.append(fitout_gh.params['sigma'].value)
@@ -564,7 +564,7 @@ def main(args=None):
                           H2KLCB.append(nonfit)
                           FLUXF1.append(nonfit)
                           FLUXF2.append(nonfit)
-                      if args.method is 1:
+                      if args.method == 1:
                           H0.append(fitout_gh.params['amp'].value)
                           H1.append(fitout_gh.params['center'].value)
                           H2.append(fitout_gh.params['sigma'].value)
@@ -588,7 +588,7 @@ def main(args=None):
                           H2KLCB.append(nonfit)
                           FLUXF1.append(nonfit)
                           FLUXF2.append(nonfit)
-                      if args.method is 2:
+                      if args.method == 2:
                           H0.append(fitout_gh.params['amp1'].value)
                           H1.append(fitout_gh.params['center1'].value)
                           H2.append(fitout_gh.params['sigma1'].value)

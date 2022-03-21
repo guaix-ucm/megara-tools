@@ -219,6 +219,9 @@ def hexplot(axis, x, y, z, scale=1.0, extent=None,
     x = np.array(x, float)
     y = np.array(y, float)
 
+    M_SQRT3 = math.sqrt(3)
+    M_1_SQRT3 = 1 / M_SQRT3
+
     sx = 2 * M_1_SQRT3 * scale * 0.99
     sy = scale * 0.99
 
