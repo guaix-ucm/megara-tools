@@ -30,12 +30,13 @@ def main(args=None):
     parser.add_argument('-t', '--traces', metavar='MASTER-TRACES', help='Master traces JSON file', type=argparse.FileType('r'))
     parser.add_argument('-s', '--shift', metavar='SHIFT-TRACES', default=0., help='Traces shift', type=float)
     parser.add_argument('-w', '--window', metavar='SEARCH-WINDOW', default=6., help='Window around traces to search for non-illuminated fibers', type=float)
-    parser.add_argument('-d', '--degree', metavar='DEGREE-POLY-COLS', default=4., help='Degree of polynomial fit for columns', type=float)
-    parser.add_argument('-d2', '--degree-rows', metavar='DEGREE-POLY-ROWS', default=4., help='Degree of polynomial fit for rows', type=float)
+    parser.add_argument('-d', '--degree', metavar='DEGREE-POLY-COLS', default=6., help='Degree of polynomial fit for columns', type=float)
+    parser.add_argument('-d2', '--degree-rows', metavar='DEGREE-POLY-ROWS', default=6., help='Degree of polynomial fit for rows', type=float)
     parser.add_argument('-p', '--outplot', metavar='OUTPUT-PLOT', help='Output plots', type=argparse.FileType('w'))
     parser.add_argument('-b', '--binning', metavar='SPECTRAL-BINNING', default=50, help='Binning in the spectral direction', type=int)
     parser.add_argument('-e', '--exclude', metavar='EXCLUDE-REGION', help='Exclude region (c1 c2 r1 r2), e.g. 2407 2720 0 164', nargs='+', type=int)
     parser.add_argument('-2D', '--two-dimensional', default=False, action="store_true", help='Two-dimensional fitting?')
+    parser.add_argument('-E', '--edge', metavar='EXCLUDE EDGE', default=3, help='Exclude this number of pixels from each edge', type=int)
 
     args = parser.parse_args(args=args)
 
@@ -84,6 +85,8 @@ def main(args=None):
                 if (abs(fibpos+args.shift-row) <= args.window):
                     lrows.append(row)
             if (np.isnan(fluxes[row])):
+                lrows.append(row)
+            if ((row <= args.edge) or (row > (rows[-1]-args.edge))):
                 lrows.append(row)
             
         frows=np.delete(rows,lrows)
