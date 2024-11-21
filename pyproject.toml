@@ -1,5 +1,71 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
+requires = ["setuptools >= 45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "megara-tools"
+dynamic = ["version"]
+description = "Analysis and visualization of data from MEGARA instrument"
+readme = "README.rst"
+requires-python = ">=3.9"
+license = {text = "GPL-3.0-or-later"}
+authors = [
+  {name = "Armando Gil de Paz", email = "agil@fis.ucm.es"},
+]
+maintainers = [
+  {name = "Sergio Pascual", email = "sergiopr@fis.ucm.es"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License (GPL)",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = [
+    "numpy",
+    "astropy",
+    "scipy",
+    "matplotlib",
+    "numina",
+    "lmfit",
+    "megaradrp",
+    "Shapely",
+    "descartes"
+]
+
+[project.optional-dependencies]
+hypercube = [
+    "pysynphot",
+]
+test = [
+    "pytest",
+    "pytest-remotedata",
+]
+
+[project.urls]
+Homepage = "https://github.com/guaix-ucm/megara-tools"
+Repository = "https://github.com/guaix-ucm/megara-tools.git"
+
+[project.scripts]
+
+
+megaratools-analyze_rss = "megaratools.analyze_rss:main"
+megaratools-analyze_spectrum = "megaratools.analyze_spectrum:main"
+megaratools-diffuse_light = "megaratools.diffuse_light:main"
+megaratools-extract_spectrum = "megaratools.extract_spectrum:main"
+megaratools-plot_spectrum = "megaratools.plot_spectrum:main"
+megaratools-rss_arith = "megaratools.rss_arith:main"
+megaratools-extract_rings = "megaratools.extract_elliptical_rings_spectrum:main"
+megaratools-hypercube = "megaratools.hypercube:main"
+megaratools-analyze_cube = "megaratools.analyze_cube:main"
+megaratools-atan_model = "megaratools.atan_model:main"
+
 [tool.setuptools_scm]
+
