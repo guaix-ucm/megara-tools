@@ -1,40 +1,42 @@
-name: Build and upload to PyPI
+name: Create wheel and upload to PyPI
 
-# Build on every branch push, tag push, and pull request change:
-# on: [push, pull_request]
-# Alternatively, to publish when a (published) GitHub Release is created, use the following:
+# Build when a release is published
 on:
-   push:
-   pull_request:
-   release:
-     types:
-       - published
+  release:
+    types: [published]
 
 jobs:
   build_sdist:
-    name: Build source distribution
+    name: Build source distribution and wheel
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.7'
+          python-version: '3.12'
+
+      - name: Install build
+        run: |
+          python -m pip install build
 
       - name: Build sdist
-        run: python setup.py sdist
+        # This builds both the wheel and sdist
+        run: python -m build
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
-          path: dist/*.tar.gz
+          path: dist/megara*
 
   upload_pypi:
     needs: [build_sdist]
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
     # upload to PyPI on every tag starting with 'v'
-    # if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    #if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
     # alternatively, to publish when a GitHub Release is created, use the following rule:
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
@@ -43,8 +45,4 @@ jobs:
           name: artifact
           path: dist
 
-      - uses: pypa/gh-action-pypi-publish@master
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
-          # To test: repository_url: https://test.pypi.org/legacy/
+      - uses: pypa/gh-action-pypi-publish@release/v1
