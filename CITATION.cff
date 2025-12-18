@@ -1,0 +1,35 @@
+# This CITATION.cff file was generated with cffinit.
+
+cff-version: 1.2.0
+title: megara-tools
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Armando
+    family-names: Gil de Paz
+    affiliation: Universidad Complutense de Madrid
+    orcid: 'https://orcid.org/0000-0001-6150-2854'
+  - given-names: Pascual
+    family-names: Sergio
+    affiliation: Universidad Complutense de Madrid
+    orcid: 'https://orcid.org/0000-0002-9351-6051'
+  - given-names: Chamorro-Cazorla
+    family-names: Mario
+    affiliation: Universidad Complutense de Madrid
+    orcid: 'https://orcid.org/0000-0003-3444-6847'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.3931923
+  - type: swh
+    value: 'swh:1:dir:dc1d4d732228fcb8050cce445e513c93585ad412'
+repository-code: 'https://github.com/guaix-ucm/megara-tools'
+abstract: >-
+  Tools for the analysis and visualization of data from the
+  MEGARA instrument
+keywords:
+  - MEGARA
+license: GPL-3.0-or-later
+version: 0.1.1
+date-released: '2020-11-09'
